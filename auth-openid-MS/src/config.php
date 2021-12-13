@@ -82,6 +82,12 @@ class OpenIDAuthMSPluginConfig extends PluginConfig
       'HIDE_LOCAL_CLIENT_LOGIN' => new BooleanField(array(
         'label' => $__('Hide local login for client accounts.')
       )),
+      'REDIRECT_STAFF_LOGIN' => new BooleanField(array(
+        'label' => $__('Redirect automatically to OpenID login provider for staff accounts.')
+      )),
+      'REDIRECT_CLIENT_LOGIN' => new BooleanField(array(
+        'label' => $__('Redirect automatically to OpenID login provider for client accounts.')
+      )),
     );
   }
 }

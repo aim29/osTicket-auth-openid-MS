@@ -73,42 +73,65 @@ class MicrosoftOpenIDClientAuthBackend extends ExternalUserAuthenticationBackend
   function __construct($config)
   {
     $this->config = $config;
-    # N.B.: check that "$_SERVER['SCRIPT_NAME']" ends with '/login.php' or '/open.php' or '/index.php', but without '/scp' just before (e.g. not ending with '/scp/login.php'):
-    if (preg_match("#(?<!\/scp)\/(login|open|index)\.php$#", $_SERVER['SCRIPT_NAME'])) {
-      if ($this->config->get('HIDE_LOCAL_CLIENT_LOGIN')) {
-        if ($this->config->get('PLUGIN_ENABLED_AWESOME')) {
-        ?>
-          <script>
-            window.onload = function() {
-              "use strict";
-              document.getElementById("one-view-page").remove();
-              document.getElementById("middle-view-page").remove();
-              /*something odd happens to this DIV when using these hacks.*/
-              document.getElementById("header-logo-subtitle").remove();
-              var eAuth = document.getElementsByClassName("external-auth");
-              while (eAuth[0].nextSibling) {
-                eAuth[0].nextSibling.remove();
-              }
-            };
-          </script>
-        <?php
-        } else {
-        ?>
-          <script>
-            window.onload = function() {
-              var loginBox = document.getElementsByClassName('login-box');
-              loginBox[0].remove();
-              var eAuth = document.getElementsByClassName('external-auth');
-              while (eAuth[0].nextSibling) {
-                eAuth[0].nextSibling.remove();
-              }
-            };
-          </script>
-        <?php
-        }
+    $this->MicrosoftAuth = new MicrosoftProviderAuth($config);
+  }
+
+  function renderExternalLink() {
+    parent::renderExternalLink();
+
+    if ($this->config->get('HIDE_LOCAL_CLIENT_LOGIN')) {
+      if ($this->config->get('PLUGIN_ENABLED_AWESOME')) {
+      ?>
+        <script>
+          window.onload = function() {
+            "use strict";
+            document.getElementById("one-view-page").remove();
+            document.getElementById("middle-view-page").remove();
+            /*something odd happens to this DIV when using these hacks.*/
+            document.getElementById("header-logo-subtitle").remove();
+            var eAuth = document.getElementsByClassName("external-auth");
+            while (eAuth[0].nextSibling) {
+              eAuth[0].nextSibling.remove();
+            }
+          };
+        </script>
+      <?php
+      } else {
+      ?>
+        <script>
+          window.onload = function() {
+            var loginBox = document.getElementsByClassName('login-box');
+            loginBox[0].remove();
+            var eAuth = document.getElementsByClassName('external-auth');
+            while (eAuth[0].nextSibling) {
+              eAuth[0].nextSibling.remove();
+            }
+          };
+        </script>
+      <?php
       }
     }
-    $this->MicrosoftAuth = new MicrosoftProviderAuth($config);
+
+    if ($this->config->get('REDIRECT_CLIENT_LOGIN')) {
+      ?>
+      <script>
+        window.onload = function() {
+          var extauthlink = document.querySelector('a.external-sign-in');
+          simulateClick(extauthlink);
+        };
+          
+        // https://gomakethings.com/how-to-simulate-a-click-event-with-javascript/
+        var simulateClick = function (elem) {
+          var evt = new MouseEvent('click', {
+                  bubbles: true,
+                  cancelable: true,
+                  view: window
+          });
+          var canceled = !elem.dispatchEvent(evt);
+        };
+      </script>
+      <?php
+    }
   }
 
   function supportsInteractiveAuthentication()
@@ -164,21 +187,43 @@ class MicrosoftOpenIDStaffAuthBackend extends ExternalStaffAuthenticationBackend
   function __construct($config)
   {
     $this->config = $config;
-    $sign_in_image_url = $this->config->get('LOGIN_LOGO');
-    # N.B.: check that "$_SERVER['SCRIPT_NAME']" ends with '/scp/login.php' or '/scp/index.php':
-    if (preg_match("#/scp/(login|index)\.php$#", $_SERVER['SCRIPT_NAME'])) {
-      if ($this->config->get('HIDE_LOCAL_STAFF_LOGIN')) {
-        ?>
-        <script>
-          window.onload = function() {
-            var login = document.getElementById('login');
-            login.remove();
-          };
-        </script>
-        <?php
-      }
-    }
     $this->MicrosoftAuth = new MicrosoftProviderAuth($config);
+  }
+  
+  function renderExternalLink() {
+    parent::renderExternalLink();
+    
+    if ($this->config->get('HIDE_LOCAL_STAFF_LOGIN')) {
+      ?>
+      <script>
+        window.onload = function() {
+          var login = document.getElementById('login');
+          login.remove();
+        };
+      </script>
+      <?php
+    }
+
+    if ($this->config->get('REDIRECT_STAFF_LOGIN')) {
+      ?>
+      <script>
+        window.onload = function() {
+          var extauthlink = document.querySelector('a.external-sign-in');
+          simulateClick(extauthlink);
+        };
+          
+        // https://gomakethings.com/how-to-simulate-a-click-event-with-javascript/
+        var simulateClick = function (elem) {
+          var evt = new MouseEvent('click', {
+                  bubbles: true,
+                  cancelable: true,
+                  view: window
+          });
+          var canceled = !elem.dispatchEvent(evt);
+        };
+      </script>
+      <?php
+    }
   }
 
   function supportsInteractiveAuthentication()
